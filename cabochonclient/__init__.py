@@ -96,30 +96,32 @@ class CabochonSender:
         self.file_index += 1
         self.log_file = open(os.path.join(self.message_dir, "log.%d" % self.file_index), "r+")
         self.message_file = open(os.path.join(self.message_dir, "messages.%d" % self.file_index), "r")
+        self.calculate_message_file_len()
         return True
 
     def send_one(self):
-        pos = self.message_file.tell()
-        if self.message_file_len == pos:
-            if not self.try_rollover():
-                return
-            
+        message_file = self.message_file
+        pos = message_file.tell()
         if self.message_file_len < pos + 24:
             self.calculate_message_file_len()
+            if self.message_file_len == pos:
+                if not self.try_rollover():
+                    return
+                    
             if self.message_file_len < pos + 24:
                 return False #not enough data for sure
 
         #try to read a record
         
-        url_len = struct.unpack("!q", message_file.read(8))
+        url_len, = struct.unpack("!q", message_file.read(8))
         pos += url_len + 8
         if self.message_file_len < pos + 16:
             #middle of a record; back up and fail
             self.message_file.seek(-8, 1)
             return False
         assert url_len < 10000 
-        url = message_file.read(message_len)
-        message_len = struct.unpack("!q", message_file.read(8))
+        url = message_file.read(url_len)
+        message_len, = struct.unpack("!q", message_file.read(8))
         pos += message_len + 8
         if self.message_file_len < pos + 8:
             #middle of a record
@@ -129,12 +131,13 @@ class CabochonSender:
         message = message_file.read(message_len)
         assert message_file.read(8) == RECORD_SEPARATOR
 
+        print "trying to send"
         #try to send it to the server
-        if rest_invoke(url, "POST", params=loads(message)) != '"accepted"':
+        if rest_invoke(url, method="POST", params=loads(message)) != '"accepted"':
             self.message_file.seek(pos)
             return #failure
 
-        self.log_file.write(struct.pack("!q", self.message_pos))
+        self.log_file.write(struct.pack("!q", message_file.tell()))
         self.log_file.flush()
         return True
 

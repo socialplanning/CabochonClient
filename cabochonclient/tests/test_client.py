@@ -1,7 +1,7 @@
 import os
 from restclient import rest_invoke
 from wsgiutils import wsgiServer
-import paste
+import paste.wsgiwrappers
 from threading import Thread
 from cabochonclient import CabochonClient
 import time
