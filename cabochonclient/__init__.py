@@ -47,7 +47,7 @@ def find_most_recent(message_dir, prefix, reverse=False):
         dot = f.rfind(".")
         if dot == -1:
             continue
-        nubmer = int(f[dot + 1:])
+        number = int(f[dot + 1:])
         if reverse ^ (number > most_recent):
             most_recent = number    
     return most_recent
@@ -148,15 +148,17 @@ class CabochonClient:
         #locate the most recent message and log files for the writer
         most_recent = find_most_recent(self.message_dir, "messages.")
 
-        #make sure that it is in a sane condition -- rseek 
-        
-        self.message_file = open(os.path.join(self.message_dir, "messages.%d" % most_recent), "r+")
+        try:
+            self.message_file = open(os.path.join(self.message_dir, "messages.%d" % most_recent), "r+")
+        except IOError:
+            self.message_file = open(os.path.join(self.message_dir, "messages.%d" % most_recent), "a")
+            
         self.clean_message_file()
         self.file_index = most_recent
         self.lock = Lock()
         self._sender = None
         
-    def sender():
+    def sender(self):
         if not self._sender:
             self._sender = CabochonSender(self.message_dir)
         return self._sender
