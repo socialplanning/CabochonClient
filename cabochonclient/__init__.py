@@ -18,8 +18,8 @@
 # USA
 
 from threading import Lock
-from os.path import isdir
-from os import mkdir, remove as removefile
+import os.path
+from os import mkdir, listdir, remove as removefile
 import struct
 from restclient import rest_invoke
 
@@ -57,8 +57,8 @@ class CabochonSender:
         self.message_dir = message_dir
         self.file_index = find_most_recent(self.message_dir, "messages.", reverse=True)
         
-        self.log_file = os.path.join(self.message_dir, "log.%d" % self.file_index, "r+")
-        self.message_file = os.path.join(self.message_dir, "messages.%d" % self.file_index, "r")
+        self.log_file = open(os.path.join(self.message_dir, "log.%d" % self.file_index), "r+")
+        self.message_file = open(os.path.join(self.message_dir, "messages.%d" % self.file_index), "r")
         message_pos = clean_log_file()
         self.calculate_message_file_len()
         self.message_file.seek(message_pos)
@@ -91,8 +91,8 @@ class CabochonSender:
         removefile("log.%d" % self.file_index)
         
         self.file_index += 1
-        self.log_file = os.path.join(self.message_dir, "log.%d" % self.file_index, "r+")
-        self.message_file = os.path.join(self.message_dir, "messages.%d" % self.file_index, "r")
+        self.log_file = open(os.path.join(self.message_dir, "log.%d" % self.file_index), "r+")
+        self.message_file = open(os.path.join(self.message_dir, "messages.%d" % self.file_index), "r")
         return True
 
     def send_one(self):
@@ -142,7 +142,7 @@ class CabochonSender:
 class CabochonClient:
     def __init__(self, message_dir):
         self.message_dir = message_dir
-        if not isdir(self.message_dir):
+        if not os.path.isdir(self.message_dir):
             mkdir(self.message_dir)
 
         #locate the most recent message and log files for the writer
@@ -150,7 +150,7 @@ class CabochonClient:
 
         #make sure that it is in a sane condition -- rseek 
         
-        self.message_file = os.path.join(self.message_dir, "messages.%d" % most_recent, "r+")
+        self.message_file = open(os.path.join(self.message_dir, "messages.%d" % most_recent), "r+")
         self.clean_message_file()
         self.file_index = most_recent
         self.lock = Lock()
@@ -198,7 +198,7 @@ class CabochonClient:
     @locked
     def rollover(self):
         self.file_index += 1
-        self.message_file = os.path.join(self.message_dir, "messages.%d" % self.file_index, "a")
+        self.message_file = open(os.path.join(self.message_dir, "messages.%d" % self.file_index), "a")
 
         
     @locked
