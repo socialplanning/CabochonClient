@@ -34,7 +34,7 @@ def locked(proc, *args, **kwargs):
         args[0].lock.acquire()
         proc(*args, **kwargs)
     finally:
-        args[0].lock.unlock()
+        args[0].lock.release()
 
 def find_most_recent(message_dir, prefix, reverse=False):
     files = listdir(message_dir)
@@ -80,13 +80,13 @@ class CabochonSender:
         return struct.unpack("!q", log_file.read(8))
 
     def calculate_message_file_len(self):
-        old_pos = message_file.tell()
-        self.message_file_file.seek(0, 2)
-        self.message_file_len = message_file.tell()
-        self.message_file_file.seek(old_pos)
+        old_pos = self.message_file.tell()
+        self.message_file.seek(0, 2)
+        self.message_file_len = self.message_file.tell()
+        self.message_file.seek(old_pos)
 
-    def try_rollover():
-        if not os.path.exist(os.path.join(self.message_dir, "messages.%d" % self.file_index + 1)):
+    def try_rollover(self):
+        if not os.path.exists(os.path.join(self.message_dir, "messages.%d" % (self.file_index + 1))):
             return False
         self.log_file.close()
         self.message_file.close()
