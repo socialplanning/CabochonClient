@@ -37,7 +37,7 @@ def locked(proc, *args, **kwargs):
         args[0].lock.unlock()
 
 def find_most_recent(message_dir, prefix, reverse=False):
-    files = listdir(self.message_dir)
+    files = listdir(message_dir)
     most_recent = 1
     if reverse:
         most_recent = 100000
@@ -135,8 +135,12 @@ class CabochonSender:
         self.log_file.flush()
         return True
 
+    def send_forever(self):
+        while 1:
+            self.send_one()
+
 class CabochonClient:
-    def __init__(message_dir):
+    def __init__(self, message_dir):
         self.message_dir = message_dir
         if not isdir(self.message_dir):
             mkdir(self.message_dir)
