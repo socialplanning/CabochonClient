@@ -105,7 +105,9 @@ class CabochonSender:
             self.calculate_message_file_len()
             if self.message_file_len < pos + 24:
                 return False #not enough data for sure
-            
+
+        #try to read a record
+        
         url_len = struct.unpack("!q", message_file.read(8))
         pos += url_len + 8
         if self.message_file_len < pos + 16:
@@ -124,7 +126,10 @@ class CabochonSender:
         message = message_file.read(message_len)
         assert message_file.read(8) == RECORD_SEPARATOR
 
-        rest_invoke(url, "POST", params=loads(message))
+        #try to send it to the server
+        if rest_invoke(url, "POST", params=loads(message)) != '"accepted"':
+            self.message_file.seek(pos)
+            return #failure
 
         self.log_file.write(struct.pack("!q", self.message_pos))
         self.log_file.flush()
