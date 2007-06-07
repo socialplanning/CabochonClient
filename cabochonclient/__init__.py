@@ -131,7 +131,6 @@ class CabochonSender:
         message = message_file.read(message_len)
         assert message_file.read(8) == RECORD_SEPARATOR
 
-        print "trying to send"
         #try to send it to the server
         if rest_invoke(url, method="POST", params=loads(message)) != '"accepted"':
             self.message_file.seek(pos)
