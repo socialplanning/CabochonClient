@@ -56,10 +56,13 @@ class CabochonSender:
     def __init__(self, message_dir):
         self.message_dir = message_dir
         self.file_index = find_most_recent(self.message_dir, "messages.", reverse=True)
-        
-        self.log_file = open(os.path.join(self.message_dir, "log.%d" % self.file_index), "r+")
+
+        try:
+            self.log_file = open(os.path.join(self.message_dir, "log.%d" % self.file_index), "r+")
+        except IOError:
+            self.log_file = open(os.path.join(self.message_dir, "log.%d" % self.file_index), "a")
         self.message_file = open(os.path.join(self.message_dir, "messages.%d" % self.file_index), "r")
-        message_pos = clean_log_file()
+        message_pos = self.clean_log_file()
         self.calculate_message_file_len()
         self.message_file.seek(message_pos)
         
