@@ -19,15 +19,16 @@
 
 from threading import Lock
 import os.path
-from os import mkdir, listdir, remove as removefile
+from os import mkdir, listdir, remove as removefile, fstat, fsync
 import struct
 from restclient import rest_invoke
 
 from decorator import decorator
 from simplejson import loads, dumps
+import traceback
 
 RECORD_SEPARATOR = struct.pack("!q",0) #JSON contains no zero bytes.
-        
+
 @decorator
 def locked(proc, *args, **kwargs):
     try:
@@ -65,6 +66,9 @@ class CabochonSender:
         message_pos = self.clean_log_file()
         self.calculate_message_file_len()
         self.message_file.seek(message_pos)
+
+    def stop(self):
+        self.running = False
         
     def clean_log_file(self):
         log_file = self.log_file
@@ -80,10 +84,7 @@ class CabochonSender:
         return struct.unpack("!q", log_file.read(8))
 
     def calculate_message_file_len(self):
-        old_pos = self.message_file.tell()
-        self.message_file.seek(0, 2)
-        self.message_file_len = self.message_file.tell()
-        self.message_file.seek(old_pos)
+        self.message_file_len = fstat(self.message_file.fileno())[6]
 
     def try_rollover(self):
         if not os.path.exists(os.path.join(self.message_dir, "messages.%d" % (self.file_index + 1))):
@@ -102,6 +103,7 @@ class CabochonSender:
     def send_one(self):
         message_file = self.message_file
         pos = message_file.tell()
+
         if self.message_file_len < pos + 24:
             self.calculate_message_file_len()
             if self.message_file_len == pos:
@@ -141,9 +143,13 @@ class CabochonSender:
         return True
 
     def send_forever(self):
-        while 1:
-            self.send_one()
-
+        self.running = True
+        while self.running:
+            try:
+                self.send_one()
+            except Exception, e:
+                traceback.print_exc()
+                
 class CabochonClient:
     def __init__(self, message_dir):
         self.message_dir = message_dir
@@ -217,6 +223,7 @@ class CabochonClient:
         self.message_file.write(json)
         self.message_file.write(RECORD_SEPARATOR)        
         self.message_file.flush()
+        fsync(self.message_file.fileno())
         if self.message_file.tell() > 1000000:
             self.rollover()
 

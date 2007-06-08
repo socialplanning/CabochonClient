@@ -53,9 +53,10 @@ client = CabochonClient(message_dir)
 sender = client.sender()
 t = Thread(target=sender.send_forever)
 t.setDaemon(True)
-t.start()
 
 def test_message():
+    t.start()
     client.send_message({'morx' : 'fleem'}, good_event_url)
-    time.sleep(0.01)
+    time.sleep(1)
+    sender.stop()    
     assert test_server.server_fixture.requests_received
