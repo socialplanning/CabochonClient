@@ -4,6 +4,7 @@ from wsgiutils import wsgiServer
 import paste.wsgiwrappers
 from threading import Thread
 from cabochonclient import CabochonClient
+from paste.util.multidict import MultiDict
 import time
 import tempfile
 
@@ -51,12 +52,23 @@ bad_event_url = cabochon_url + "error/fleem"
 
 client = CabochonClient(message_dir)
 sender = client.sender()
-t = Thread(target=sender.send_forever)
-t.setDaemon(True)
-
-def test_message():
+def setup():
+    t = Thread(target=sender.send_forever)
+    t.setDaemon(True)
     t.start()
+    
+def teardown():
+    sender.stop()
+    
+def test_message():
     client.send_message({'morx' : 'fleem'}, good_event_url)
-    time.sleep(1)
-    sender.stop()    
-    assert test_server.server_fixture.requests_received
+    time.sleep(0.1)
+    assert test_server.server_fixture.requests_received == [{'path': '/event/handle/1', 'params': MultiDict([('morx', 'fleem')]), 'method': 'POST'}]
+
+def test_messages():
+    test_server.server_fixture.clear()    
+    client.send_message({'two' : 'fleem'}, good_event_url)
+    client.send_message({'three' : 'fleem'}, good_event_url)
+    
+    time.sleep(0.1)
+    assert len(test_server.server_fixture.requests_received) == 2
