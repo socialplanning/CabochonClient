@@ -1,0 +1,28 @@
+Cabochon can lose messages if they are not written to disk before the
+client crashes.  This could be bad.  Here's a solution:
+
+When the client starts up, send a start-up message.  Note that this
+will be enqueued after any messages from before a crash.
+
+0. If the client crashes here, it's OK because nothing has happened yet.
+
+1. Before you begin an action, send a pre-message indicating that the
+action is about to begin.
+
+2. If the client crashes here, we can't tell if the ation has been
+done yet.
+
+3. Do the action
+
+4. Likewise here.
+
+5. Now send a completed message.
+
+6. If the client crashes here, it's OK because the message will be
+sent when the client restarts.
+
+On the server side, when you get a pre-message, store it.  When you
+get the corresponding completed message, delete the stored
+pre-message.  If you get a start-up message, look for any pre-messages
+without corresponding completed messages.  Ask the client whether the
+actions in fact went through, and if they did, process them.
