@@ -103,6 +103,7 @@ class CabochonSender:
     def send_one(self):
         message_file = self.message_file
         pos = message_file.tell()
+        init_pos = pos
 
         if self.message_file_len < pos + 24:
             self.calculate_message_file_len()
@@ -135,7 +136,7 @@ class CabochonSender:
 
         #try to send it to the server
         if rest_invoke(url, method="POST", params=loads(message)) != '"accepted"':
-            self.message_file.seek(pos)
+            self.message_file.seek(init_pos)
             return #failure
 
         self.log_file.write(struct.pack("!q", message_file.tell()))
