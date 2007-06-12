@@ -152,8 +152,10 @@ class CabochonSender:
                 traceback.print_exc()
                 
 class CabochonClient:
-    def __init__(self, message_dir):
+    def __init__(self, message_dir, server_url = None):
         self.message_dir = message_dir
+        self.server_url = server_url
+        
         if not os.path.isdir(self.message_dir):
             mkdir(self.message_dir)
 
@@ -216,7 +218,9 @@ class CabochonClient:
 
         
     @locked
-    def send_message(self, params, url):
+    def send_message(self, params, url = None):
+        if not url:
+            url = self.server_url
         json = dumps(params)
         self.message_file.write(struct.pack("!q",len(url)))
         self.message_file.write(url)
