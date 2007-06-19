@@ -17,7 +17,7 @@
 # Boston, MA  02110-1301
 # USA
 
-from threading import Lock
+from threading import RLock
 import os.path
 from os import mkdir, listdir, remove as removefile, fstat, fsync
 import struct
@@ -171,7 +171,7 @@ class CabochonClient:
             
         self.clean_message_file()
         self.file_index = most_recent
-        self.lock = Lock()
+        self.lock = RLock()
         self._sender = None
         
     def sender(self):
