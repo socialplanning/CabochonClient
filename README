@@ -16,7 +16,7 @@ done yet.
 
 4. Likewise here.
 
-5. Now send a completed message.
+5. Now enqueue a completed message.
 
 6. If the client crashes here, it's OK because the message will be
 sent when the client restarts.

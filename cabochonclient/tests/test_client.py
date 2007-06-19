@@ -7,6 +7,7 @@ from cabochonclient import CabochonClient
 from paste.util.multidict import MultiDict
 import time
 import tempfile
+from simplejson import loads, dumps
 
 class CabochonTestServer(Thread):
     def __init__(self):
@@ -31,6 +32,11 @@ class CabochonServerFixture:
         req = paste.wsgiwrappers.WSGIRequest(environ)
             
         self.requests_received.append({'path' :  path_info, 'method' : environ['REQUEST_METHOD'], 'params' : req.params})
+
+        if path_info.startswith('/event'):
+            status = '200 OK'            
+            start_response(status, [('Content-type', 'text/plain')])
+            return [dumps({'subscribe' : '/subscribe', 'fire': '/fire'})]
             
         if path_info.startswith('/error') and self.return_errors:
             status = '500 Server Error'
@@ -48,10 +54,10 @@ test_server.start()
 
 cabochon_url = "http://localhost:10424/"
 
-good_event_url = cabochon_url + "event/handle/1"
+good_event_url = cabochon_url + "good/handle/1"
 bad_event_url = cabochon_url + "error/fleem"
 
-client = CabochonClient(message_dir)
+client = CabochonClient(message_dir, cabochon_url)
 sender = client.sender()
 
 def setup():
@@ -65,7 +71,7 @@ def teardown():
 def test_message():
     client.send_message({'morx' : 'fleem'}, good_event_url)
     time.sleep(0.1)
-    assert test_server.server_fixture.requests_received == [{'path': '/event/handle/1', 'params': MultiDict([('morx', 'fleem')]), 'method': 'POST'}]
+    assert test_server.server_fixture.requests_received == [{'path': '/good/handle/1', 'params': MultiDict([('morx', 'fleem')]), 'method': 'POST'}]
 
 def test_messages():
     test_server.server_fixture.clear()    
@@ -90,3 +96,11 @@ def test_errors():
     time.sleep(0.1)
     assert len(test_server.server_fixture.requests_received) == 2     
 
+def test_queues():
+    test_server.server_fixture.clear()
+    queue = client.queue("thequeue")
+    queue.send_message({'three' : 'fleem'})
+
+    time.sleep(0.1)   
+    assert len(test_server.server_fixture.requests_received) == 2 
+    

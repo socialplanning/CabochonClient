@@ -1,3 +1,5 @@
+COPYING
+README
 setup.py
 CabochonClient.egg-info/PKG-INFO
 CabochonClient.egg-info/SOURCES.txt
@@ -5,3 +7,4 @@ CabochonClient.egg-info/dependency_links.txt
 CabochonClient.egg-info/requires.txt
 CabochonClient.egg-info/top_level.txt
 cabochonclient/__init__.py
+cabochonclient/tests/test_client.py

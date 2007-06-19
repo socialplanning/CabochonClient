@@ -155,6 +155,8 @@ class CabochonClient:
     def __init__(self, message_dir, server_url = None):
         self.message_dir = message_dir
         self.server_url = server_url
+
+        self.queues = {}
         
         if not os.path.isdir(self.message_dir):
             mkdir(self.message_dir)
@@ -218,9 +220,11 @@ class CabochonClient:
 
         
     @locked
-    def send_message(self, params, url = None):
+    def send_message(self, params, url = None, path=None):
         if not url:
             url = self.server_url
+        if path:
+            url += path
         json = dumps(params)
         self.message_file.write(struct.pack("!q",len(url)))
         self.message_file.write(url)
@@ -232,3 +236,25 @@ class CabochonClient:
         if self.message_file.tell() > 1000000:
             self.rollover()
 
+    def queue(self, event):
+        try:
+            return self.queues[event]
+        except KeyError:
+            queue = CabochonMessageQueue(self, event)
+            self.queues[event] = queue
+            return queue
+
+
+class CabochonMessageQueue:
+    def __init__(self, client, event):
+        self.client = client
+        self.event = event        
+
+        assert client.server_url
+
+        urls = loads(rest_invoke(client.server_url + "/event", method="POST", params={"name" : event}))
+        self.fire_url = urls['fire']
+
+    def send_message(self, params):
+        self.client.send_message(params, path=self.fire_url)
+        

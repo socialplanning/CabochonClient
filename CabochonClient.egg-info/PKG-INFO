@@ -1,10 +1,10 @@
 Metadata-Version: 1.0
 Name: CabochonClient
-Version: 0.0.0
-Summary: UNKNOWN
-Home-page: UNKNOWN
+Version: 0.1
+Summary: A client for the Cabochon event server
+Home-page: http://www.openplans.org/projects/cabochon
 Author: David Turner
 Author-email: novalis@openplans.org
-License: UNKNOWN
+License: GPLv2 or any later version
 Description: UNKNOWN
 Platform: UNKNOWN
