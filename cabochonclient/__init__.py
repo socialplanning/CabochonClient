@@ -188,7 +188,7 @@ class CabochonClient:
             return
 
         message_file.seek(-len(RECORD_SEPARATOR), 2)
-        if message_file.read(RECORD_SEPARATOR) == RECORD_SEPARATOR:
+        if message_file.read(len(RECORD_SEPARATOR)) == RECORD_SEPARATOR:
             return #the last record is complete
 
         #we must have a partially-completed record.
