@@ -118,9 +118,6 @@ class CabochonSender:
         #try to read a record
         
         url_len, = struct.unpack("!q", message_file.read(8))
-        print "len is", url_len
-        
-        url_len = int(url_len)
         pos += url_len + 8
         if self.message_file_len < pos + 16:
             #middle of a record; back up and fail
