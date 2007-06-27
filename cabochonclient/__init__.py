@@ -81,7 +81,8 @@ class CabochonSender:
         if not file_len:
             return 0
         log_file.seek(-8, 2)
-        return int(struct.unpack("!q", log_file.read(8)))
+        r_len, = struct.unpack("!q", log_file.read(8))
+        return r_len
 
     def calculate_message_file_len(self):
         self.message_file_len = fstat(self.message_file.fileno())[6]
@@ -117,6 +118,8 @@ class CabochonSender:
         #try to read a record
         
         url_len, = struct.unpack("!q", message_file.read(8))
+        print "len is", url_len
+        
         url_len = int(url_len)
         pos += url_len + 8
         if self.message_file_len < pos + 16:
