@@ -121,11 +121,16 @@ def test_trunc():
     f = open(os.path.join(message_dir, "messages.1"), "r+")
     f.seek(-3, 2)
     f.truncate()
+    f.close()
+    
+    client.clean_message_file()
 
     #start the sender again, see what happens.
     setup()
 
+    client.send_message({'three' : 'fleem'}, good_event_url)
+
     time.sleep(0.1)
     
-    assert len(test_server.server_fixture.requests_received) == 1
+    assert len(test_server.server_fixture.requests_received) == 2
 

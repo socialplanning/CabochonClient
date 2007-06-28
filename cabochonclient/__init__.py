@@ -27,7 +27,7 @@ from decorator import decorator
 from simplejson import loads, dumps
 import traceback
 
-RECORD_SEPARATOR = struct.pack("!q",0) #JSON contains no zero bytes.
+RECORD_SEPARATOR = '\x00""""""\x00' 
 
 @decorator
 def locked(proc, *args, **kwargs):
@@ -61,8 +61,8 @@ class CabochonSender:
         try:
             self.log_file = open(os.path.join(self.message_dir, "log.%d" % self.file_index), "r+")
         except IOError:
-            self.log_file = open(os.path.join(self.message_dir, "log.%d" % self.file_index), "a")
-        self.message_file = open(os.path.join(self.message_dir, "messages.%d" % self.file_index), "r")
+            self.log_file = open(os.path.join(self.message_dir, "log.%d" % self.file_index), "a+")
+        self.message_file = open(os.path.join(self.message_dir, "messages.%d" % self.file_index), "r+")
         message_pos = self.clean_log_file()
         self.calculate_message_file_len()
         self.message_file.seek(message_pos)
@@ -168,7 +168,7 @@ class CabochonClient:
         try:
             self.message_file = open(os.path.join(self.message_dir, "messages.%d" % most_recent), "r+")
         except IOError:
-            self.message_file = open(os.path.join(self.message_dir, "messages.%d" % most_recent), "a")
+            self.message_file = open(os.path.join(self.message_dir, "messages.%d" % most_recent), "a+")
             
         self.clean_message_file()
         self.file_index = most_recent
@@ -189,6 +189,7 @@ class CabochonClient:
             return
 
         message_file.seek(-len(RECORD_SEPARATOR), 2)
+
         if message_file.read(len(RECORD_SEPARATOR)) == RECORD_SEPARATOR:
             return #the last record is complete
 
@@ -206,13 +207,13 @@ class CabochonClient:
             sep = window.rfind(RECORD_SEPARATOR)
             if sep:
                 message_file.seek(pos + sep + len(RECORD_SEPARATOR), 2)
-                message_file.truncate(message_file.tell())
+                message_file.truncate()
                 break
             last_message = block
             if pos == -file_len:
                 message_file.truncate(0)
                 break #no messages
-        message_file.seek(0, -2) #skip to end
+        message_file.seek(0, 2) #skip to end
 
     @locked
     def rollover(self):
