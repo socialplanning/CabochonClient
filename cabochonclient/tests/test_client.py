@@ -67,6 +67,10 @@ def setup():
     
 def teardown():
     sender.stop()
+    for f in os.listdir(message_dir):
+        os.remove(os.path.join(message_dir, f))
+
+    os.rmdir(message_dir)
     
 def test_message():
     client.send_message({'morx' : 'fleem'}, good_event_url)
@@ -88,7 +92,7 @@ def test_errors():
     time.sleep(0.1)
     #we get a lot of error messages
     assert len(test_server.server_fixture.requests_received) > 2
-    teardown()
+    sender.stop()
     time.sleep(0.1)    
     test_server.server_fixture.return_errors = False
     test_server.server_fixture.clear()    
@@ -103,4 +107,25 @@ def test_queues():
 
     time.sleep(0.1)   
     assert len(test_server.server_fixture.requests_received) == 2 
+
+
+def test_trunc():
+    test_server.server_fixture.clear()
+    sender.stop()
+
+    #enqueue messages
+    client.send_message({'one' : 'fleem'}, good_event_url)
+    client.send_message({'two' : 'fleem'}, good_event_url)
     
+    #now truncate the message
+    f = open(os.path.join(message_dir, "messages.1"), "r+")
+    f.seek(-3, 2)
+    f.truncate()
+
+    #start the sender again, see what happens.
+    setup()
+
+    time.sleep(0.1)
+    
+    assert len(test_server.server_fixture.requests_received) == 1
+
