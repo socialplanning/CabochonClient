@@ -255,5 +255,6 @@ class CabochonMessageQueue:
         assert client.server_url
 
     def send_message(self, params):
-        self.client.send_message(params, path="/event/fire_by_name/%s" % event)
+
+        self.client.send_message(params, path="/event/fire_by_name/%s" % self.event)
         
