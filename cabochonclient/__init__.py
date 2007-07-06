@@ -254,9 +254,6 @@ class CabochonMessageQueue:
 
         assert client.server_url
 
-        urls = loads(rest_invoke(client.server_url + "/event", method="POST", params={"name" : event}))
-        self.fire_url = urls['fire']
-
     def send_message(self, params):
-        self.client.send_message(params, path=self.fire_url)
+        self.client.send_message(params, path="/event/fire_by_name/%s" % event)
         
