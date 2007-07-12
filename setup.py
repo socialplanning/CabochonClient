@@ -27,7 +27,7 @@ setup(
     author_email="novalis@openplans.org",
     url="http://www.openplans.org/projects/cabochon",
     license="GPLv2 or any later version",
-    install_requires=["simplejson"],
+    install_requires=["simplejson", "restclient"],
     packages=find_packages(),
     include_package_data=True,
 )
