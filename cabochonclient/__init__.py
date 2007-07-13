@@ -26,6 +26,7 @@ from restclient import rest_invoke
 from decorator import decorator
 from simplejson import loads, dumps
 import traceback
+import time
 
 RECORD_SEPARATOR = '\x00""""""\x00' 
 
@@ -54,7 +55,8 @@ def find_most_recent(message_dir, prefix, reverse=False):
     return most_recent
 
 class CabochonSender:
-    def __init__(self, message_dir):
+    def __init__(self, message_dir, max_file_size = 1000000):
+        self.max_file_size = max_file_size
         self.message_dir = message_dir
         self.file_index = find_most_recent(self.message_dir, "messages.", reverse=True)
 
@@ -101,7 +103,7 @@ class CabochonSender:
         self.calculate_message_file_len()
         return True
 
-    def send_one(self):
+    def read_message(self):
         message_file = self.message_file
         pos = message_file.tell()
         init_pos = pos
@@ -110,10 +112,10 @@ class CabochonSender:
             self.calculate_message_file_len()
             if self.message_file_len == pos:
                 if not self.try_rollover():
-                    return
+                    return False, False, -1
                     
             if self.message_file_len < pos + 24:
-                return False #not enough data for sure
+                return False, False, -1 #not enough data for sure
 
         #try to read a record
         
@@ -122,7 +124,7 @@ class CabochonSender:
         if self.message_file_len < pos + 16:
             #middle of a record; back up and fail
             self.message_file.seek(-8, 1)
-            return False
+            return False, False, init_pos
         assert url_len < 10000 
         url = message_file.read(url_len)
         message_len, = struct.unpack("!q", message_file.read(8))
@@ -130,17 +132,26 @@ class CabochonSender:
         if self.message_file_len < pos + 8:
             #middle of a record
             self.message_file.seek(-(url_len + 16), 1)
-            return False
+            return False, False, init_pos
         assert message_len < 100000000
         message = message_file.read(message_len)
         assert message_file.read(8) == RECORD_SEPARATOR
+        return url, message, init_pos
 
+    def rollback_read(self, init_pos):
+        self.message_file.seek(init_pos)
+        
+    def send_one(self):
+        url, message, init_pos = self.read_message()
+        if not url:
+            return url #failure
+        
         #try to send it to the server
         if rest_invoke(url, method="POST", params=loads(message)) != '"accepted"':
-            self.message_file.seek(init_pos)
+            self.rollback_read(init_pos)
             return #failure
 
-        self.log_file.write(struct.pack("!q", message_file.tell()))
+        self.log_file.write(struct.pack("!q", self.message_file.tell()))
         self.log_file.flush()
         return True
 
@@ -148,15 +159,17 @@ class CabochonSender:
         self.running = True
         while self.running:
             try:
-                self.send_one()
+                if not self.send_one():
+                    time.sleep(0)
             except Exception, e:
                 traceback.print_exc()
                 
 class CabochonClient:
-    def __init__(self, message_dir, server_url = None):
+    def __init__(self, message_dir, server_url = None, max_file_size = 1000000):
         self.message_dir = message_dir
         self.server_url = server_url
-
+        self.max_file_size = max_file_size
+        
         self.queues = {}
         
         if not os.path.isdir(self.message_dir):
@@ -177,7 +190,7 @@ class CabochonClient:
         
     def sender(self):
         if not self._sender:
-            self._sender = CabochonSender(self.message_dir)
+            self._sender = CabochonSender(self.message_dir, max_file_size=self.max_file_size)
         return self._sender
     
     def clean_message_file(self):
@@ -235,7 +248,7 @@ class CabochonClient:
         self.message_file.write(RECORD_SEPARATOR)        
         self.message_file.flush()
         fsync(self.message_file.fileno())
-        if self.message_file.tell() > 1000000:
+        if self.message_file.tell() > self.max_file_size:
             self.rollover()
 
     def queue(self, event):

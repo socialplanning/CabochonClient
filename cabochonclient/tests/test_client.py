@@ -105,7 +105,7 @@ def test_queues():
     queue = client.queue("thequeue")
     queue.send_message({'three' : 'fleem'})
 
-    time.sleep(0.1)   
+    time.sleep(1)
     assert len(test_server.server_fixture.requests_received) == 2 
 
 
@@ -130,7 +130,6 @@ def test_trunc():
 
     client.send_message({'three' : 'fleem'}, good_event_url)
 
-    time.sleep(0.1)
-    
+    time.sleep(1)
     assert len(test_server.server_fixture.requests_received) == 2
 
