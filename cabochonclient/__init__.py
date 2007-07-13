@@ -27,6 +27,9 @@ from decorator import decorator
 from simplejson import loads, dumps
 import traceback
 import time
+from random import random
+from datetime import datetime
+from sha import sha
 
 RECORD_SEPARATOR = '\x00""""""\x00' 
 
@@ -140,14 +143,34 @@ class CabochonSender:
 
     def rollback_read(self, init_pos):
         self.message_file.seek(init_pos)
+
+    def wsse_header(self, username, password):
+        hexdigits = "0123456789abcdef"
+        nonce = "".join(hexdigits[int(random() * 16)] for x in range(32))
+        created = datetime.utcnow().isoformat() + "Z"
+        password_digest = "%s%s%s" % (nonce, created, password)
+        password_digest = sha(password_digest).digest().encode("base64")
         
+        header = 'UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"' % (username, password_digest, nonce, created)
+        return header
+    
     def send_one(self):
         url, message, init_pos = self.read_message()
         if not url:
             return url #failure
+
+        params = loads(message)
+        headers = {}
+        if params.has_key("__extra"):
+            extra = params['__extra']
+            del params['__extra']
+            username = extra['username']
+            password = extra['password']
+            headers['Authorization'] = 'WSSE profile="UsernameToken"'
+            headers['X-WSSE'] = self.wsse_header(username, password)
         
         #try to send it to the server
-        if rest_invoke(url, method="POST", params=loads(message)) != '"accepted"':
+        if rest_invoke(url, method="POST", params=loads(message), headers = headers) != '"accepted"':
             self.rollback_read(init_pos)
             return #failure
 
@@ -160,15 +183,18 @@ class CabochonSender:
         while self.running:
             try:
                 if not self.send_one():
-                    time.sleep(0)
+                    time.sleep(0.001)
             except Exception, e:
                 traceback.print_exc()
                 
 class CabochonClient:
-    def __init__(self, message_dir, server_url = None, max_file_size = 1000000):
+    def __init__(self, message_dir, server_url = None, max_file_size = 1000000, username = None, password = None):
         self.message_dir = message_dir
         self.server_url = server_url
         self.max_file_size = max_file_size
+
+        self.username = username
+        self.password = password
         
         self.queues = {}
         
@@ -240,6 +266,9 @@ class CabochonClient:
             url = self.server_url
         if path:
             url += path
+        if self.username:
+            params['__extra'] = dict(username = self.username,
+                                     password = self.password)
         json = dumps(params)
         self.message_file.write(struct.pack("!q",len(url)))
         self.message_file.write(url)

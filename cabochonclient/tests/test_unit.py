@@ -1,13 +1,14 @@
 from cabochonclient import CabochonClient
 from simplejson import loads, dumps
 import tempfile
+import re
+from sha import sha
 
+message_dir = tempfile.mkdtemp()
+client = CabochonClient(message_dir, 'http://www.example.com/')
+sender = client.sender()
 
 def test_sender():
-    message_dir = tempfile.mkdtemp()
-    client = CabochonClient(message_dir, 'http://www.example.com/')
-    sender = client.sender()
-
     #no messages
     url, message, init_pos = sender.read_message()
     assert not url
@@ -52,3 +53,13 @@ def test_sender():
     assert loads(message) == dict(new=1)
     assert init_pos > 0    
 
+
+def test_wsse():
+    real_password = 'toppzecretpassvord'
+    header = sender.wsse_header('bob', real_password)
+    wsse_re = re.compile('UsernameToken Username="([^"]+)", PasswordDigest="([^"]+)", Nonce="([^"]+)", Created="([^"]+)"')
+    match = wsse_re.match(header)
+    username, password_digest, nonce, created = match.groups()
+    expected_password_digest = "%s%s%s" % (nonce, created, real_password)
+    expected_password_digest = sha(expected_password_digest).digest().encode("base64")
+    assert expected_password_digest == password_digest
