@@ -33,7 +33,7 @@ class CabochonServerFixture:
             
         self.requests_received.append({'path' :  path_info, 'method' : environ['REQUEST_METHOD'], 'params' : req.params})
 
-        if path_info.startswith('/event'):
+        if path_info.startswith('/event/sub'):
             status = '200 OK'            
             start_response(status, [('Content-type', 'text/plain')])
             return [dumps({'subscribe' : '/subscribe', 'fire': '/fire'})]
@@ -74,7 +74,8 @@ def teardown():
     
 def test_message():
     client.send_message({'morx' : 'fleem'}, good_event_url)
-    time.sleep(0.1)
+
+    time.sleep(1)
     assert test_server.server_fixture.requests_received == [{'path': '/good/handle/1', 'params': MultiDict([('morx', 'fleem')]), 'method': 'POST'}]
 
 def test_messages():
@@ -82,22 +83,22 @@ def test_messages():
     client.send_message({'two' : 'fleem'}, good_event_url)
     client.send_message({'three' : 'fleem'}, good_event_url)
     
-    time.sleep(0.1)
+    time.sleep(1)
     assert len(test_server.server_fixture.requests_received) == 2
     
 def test_errors():
     test_server.server_fixture.clear()    
     client.send_message({'two' : 'fleem'}, bad_event_url)
     client.send_message({'three' : 'fleem'}, good_event_url)
-    time.sleep(0.1)
+    time.sleep(1)
     #we get a lot of error messages
     assert len(test_server.server_fixture.requests_received) > 2
     sender.stop()
-    time.sleep(0.1)    
+    time.sleep(1)    
     test_server.server_fixture.return_errors = False
     test_server.server_fixture.clear()    
     setup()
-    time.sleep(0.1)
+    time.sleep(1)
     assert len(test_server.server_fixture.requests_received) == 2     
 
 def test_queues():
@@ -106,7 +107,7 @@ def test_queues():
     queue.send_message({'three' : 'fleem'})
 
     time.sleep(1)
-    assert len(test_server.server_fixture.requests_received) == 2 
+    assert len(test_server.server_fixture.requests_received) == 1
 
 
 def test_trunc():
