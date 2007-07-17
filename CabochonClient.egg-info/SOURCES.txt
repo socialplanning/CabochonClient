@@ -7,4 +7,7 @@ CabochonClient.egg-info/dependency_links.txt
 CabochonClient.egg-info/requires.txt
 CabochonClient.egg-info/top_level.txt
 cabochonclient/__init__.py
+cabochonclient/_utility.py
+cabochonclient/tests/__init__.py
 cabochonclient/tests/test_client.py
+cabochonclient/tests/test_unit.py

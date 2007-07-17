@@ -150,7 +150,7 @@ class CabochonSender:
         nonce = "".join(hexdigits[int(random() * 16)] for x in range(32))
         created = datetime.utcnow().isoformat() + "Z"
         password_digest = "%s%s%s" % (nonce, created, password)
-        password_digest = sha(password_digest).digest().encode("base64")
+        password_digest = sha(password_digest).digest().encode("base64").strip()
         
         header = 'UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"' % (username, password_digest, nonce, created)
         return header
