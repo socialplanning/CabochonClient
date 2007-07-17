@@ -1,4 +1,4 @@
-from cabochonclient import CabochonClient
+from cabochonclient import CabochonClient, wsse_header
 from simplejson import loads, dumps
 import tempfile
 import re
@@ -56,10 +56,10 @@ def test_sender():
 
 def test_wsse():
     real_password = 'toppzecretpassvord'
-    header = sender.wsse_header('bob', real_password)
+    header = wsse_header('bob', real_password)
     wsse_re = re.compile('UsernameToken Username="([^"]+)", PasswordDigest="([^"]+)", Nonce="([^"]+)", Created="([^"]+)"')
     match = wsse_re.match(header)
     username, password_digest, nonce, created = match.groups()
     expected_password_digest = "%s%s%s" % (nonce, created, real_password)
-    expected_password_digest = sha(expected_password_digest).digest().encode("base64")
+    expected_password_digest = sha(expected_password_digest).digest().encode("base64").strip()
     assert expected_password_digest == password_digest
