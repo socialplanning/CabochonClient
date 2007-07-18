@@ -30,7 +30,7 @@ import time
 from random import random
 from datetime import datetime
 from sha import sha
-from _utility import datetime_to_string
+from _utility import *
 
 RECORD_SEPARATOR = '\x00""""""\x00' 
 
