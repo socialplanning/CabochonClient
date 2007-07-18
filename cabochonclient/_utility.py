@@ -6,4 +6,4 @@ def datetime_to_string(dt):
 def datetime_from_string(dt):
     assert dt.startswith("@")
     assert dt.endswith("@")
-    return datetime.utcfromtimestamp(dt[1:-1])
+    return datetime.utcfromtimestamp(int(dt[1:-1]))
