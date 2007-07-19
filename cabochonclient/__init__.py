@@ -215,6 +215,19 @@ class CabochonClient:
         self.file_index = most_recent
         self.lock = RLock()
         self._sender = None
+
+    def test_login(self):
+        """Tests whether the given username and password work with the
+        given server.  If the server is down, returns False even
+        though queued messages with this username/password might
+        eventually be accepted."""
+
+        headers = {}        
+        if self.username:
+            headers['Authorization'] = 'WSSE profile="UsernameToken"'
+            headers['X-WSSE'] = wsse_header(self.username, self.password)        
+        result, body = rest_invoke(self.server_url + "/event", method="GET", headers = headers, resp=True)
+        return result['status'] == '200'
         
     def sender(self):
         if not self._sender:
