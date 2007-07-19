@@ -1,3 +1,0 @@
-simplejson
-restclient
-decorator
