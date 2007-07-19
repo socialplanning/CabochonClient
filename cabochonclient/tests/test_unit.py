@@ -1,8 +1,9 @@
-from cabochonclient import CabochonClient, wsse_header
+from cabochonclient import *
 from simplejson import loads, dumps
 import tempfile
 import re
 from sha import sha
+from datetime import datetime, timedelta
 
 message_dir = tempfile.mkdtemp()
 client = CabochonClient(message_dir, 'http://www.example.com/')
@@ -63,3 +64,9 @@ def test_wsse():
     expected_password_digest = "%s%s%s" % (nonce, created, real_password)
     expected_password_digest = sha(expected_password_digest).digest().encode("base64").strip()
     assert expected_password_digest == password_digest
+
+
+def test_datetime_to_string():
+    date = datetime(2004, 5, 1)
+    print datetime_from_string(datetime_to_string(date))
+    assert datetime_from_string(datetime_to_string(date)) - date < timedelta(0, 1, 0)
