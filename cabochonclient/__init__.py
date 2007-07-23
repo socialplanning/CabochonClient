@@ -31,7 +31,10 @@ from random import random
 from datetime import datetime
 from sha import sha
 from _utility import *
+import logging
 
+log = logging.getLogger("CabochonClient")
+        
 RECORD_SEPARATOR = '\x00""""""\x00' 
 
 def wsse_header(username, password):
@@ -74,7 +77,7 @@ class CabochonSender:
         self.max_file_size = max_file_size
         self.message_dir = message_dir
         self.file_index = find_most_recent(self.message_dir, "messages.", reverse=True)
-
+        
         try:
             self.log_file = open(os.path.join(self.message_dir, "log.%d" % self.file_index), "r+")
         except IOError:
@@ -119,6 +122,7 @@ class CabochonSender:
         return True
 
     def read_message(self):
+        log.debug("trying to read a message")
         message_file = self.message_file
         pos = message_file.tell()
         init_pos = pos
@@ -160,6 +164,8 @@ class CabochonSender:
         url, message, init_pos = self.read_message()
         if not url:
             return url #failure
+
+        log.debug("sending a message")
 
         params = loads(message)
         headers = {}
@@ -235,6 +241,7 @@ class CabochonClient:
         return self._sender
     
     def clean_message_file(self):
+        log.debug("cleaning message file")
         message_file = self.message_file
         #remove the last item in the message buffer if it's not complete
         message_file.seek(0, 2)
@@ -271,6 +278,7 @@ class CabochonClient:
 
     @locked
     def rollover(self):
+        log.debug("rolling over to new message file %d" % self.file_index)
         self.file_index += 1
         self.message_file = open(os.path.join(self.message_dir, "messages.%d" % self.file_index), "a")
 
@@ -281,6 +289,8 @@ class CabochonClient:
             url = self.server_url
         if path:
             url += path
+            log.debug("enqueueing message to %s" % url)
+            
         if self.username:
             params['__extra'] = dict(username = self.username,
                                      password = self.password)
