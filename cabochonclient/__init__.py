@@ -176,9 +176,12 @@ class CabochonSender:
             password = extra['password']
             headers['Authorization'] = 'WSSE profile="UsernameToken"'
             headers['X-WSSE'] = wsse_header(username, password)
-        
+            log.debug("username, password: %s %s" % (username, password))
+            
         #try to send it to the server
-        if rest_invoke(url, method="POST", params=loads(message), headers = headers) != '"accepted"':
+        result = rest_invoke(url, method="POST", params=loads(message), headers = headers)
+        if result != '"accepted"':
+            log.debug("failure: %s" % result)
             self.rollback_read(init_pos)
             return #failure
 
