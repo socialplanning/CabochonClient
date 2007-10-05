@@ -45,7 +45,7 @@ class CabochonServerFixture:
         else:
             status = '200 OK'
             start_response(status, [('Content-type', 'text/plain')])
-            return ['"accepted"']
+            return ['{"status" : "accepted"}']
 
 message_dir = tempfile.mkdtemp()
         

@@ -31,21 +31,12 @@ from random import random
 from datetime import datetime
 from sha import sha
 from _utility import *
+from wsseauth import wsse_header
 import logging
 
 log = logging.getLogger("CabochonClient")
         
 RECORD_SEPARATOR = '\x00""""""\x00' 
-
-def wsse_header(username, password):
-    hexdigits = "0123456789abcdef"
-    nonce = "".join(hexdigits[int(random() * 16)] for x in range(32))
-    created = datetime.utcnow().isoformat() + "Z"
-    password_digest = "%s%s%s" % (nonce, created, password)
-    password_digest = sha(password_digest).digest().encode("base64").strip()
-    
-    header = 'UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"' % (username, password_digest, nonce, created)
-    return header
 
 
 @decorator
@@ -180,7 +171,11 @@ class CabochonSender:
             
         #try to send it to the server
         result = rest_invoke(url, method="POST", params=loads(message), headers = headers)
-        if result != '"accepted"':
+        try:
+            result = loads(result)
+        except ValueError:
+            result = {}
+        if result.get('status', None) != 'accepted':
             log.debug("failure: %s" % result)
             self.rollback_read(init_pos)
             return #failure
