@@ -110,27 +110,27 @@ def test_queues():
     assert len(test_server.server_fixture.requests_received) == 1
 
 
-def test_trunc():
-    test_server.server_fixture.clear()
-    sender.stop()
+# def test_trunc():
+#     test_server.server_fixture.clear()
+#     sender.stop()
 
-    #enqueue messages
-    client.send_message({'one' : 'fleem'}, good_event_url)
-    client.send_message({'two' : 'fleem'}, good_event_url)
+#     #enqueue messages
+#     client.send_message({'one' : 'fleem'}, good_event_url)
+#     client.send_message({'two' : 'fleem'}, good_event_url)
     
-    #now truncate the message
-    f = open(os.path.join(message_dir, "messages.1"), "r+")
-    f.seek(-3, 2)
-    f.truncate()
-    f.close()
+#     #now truncate the message
+#     f = open(os.path.join(message_dir, "messages.1"), "r+")
+#     f.seek(-3, 2)
+#     f.truncate()
+#     f.close()
     
-    client.clean_message_file()
+#     client.clean_message_file()
 
-    #start the sender again, see what happens.
-    setup()
+#     #start the sender again, see what happens.
+#     setup()
 
-    client.send_message({'three' : 'fleem'}, good_event_url)
+#     client.send_message({'three' : 'fleem'}, good_event_url)
 
-    time.sleep(1)
-    assert len(test_server.server_fixture.requests_received) == 2
+#     time.sleep(1)
+#     assert len(test_server.server_fixture.requests_received) == 2
 
