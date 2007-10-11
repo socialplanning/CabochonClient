@@ -76,7 +76,7 @@ def test_message():
     client.send_message({'morx' : 'fleem'}, good_event_url)
 
     time.sleep(1)
-    assert test_server.server_fixture.requests_received == [{'path': '/good/handle/1', 'params': MultiDict([('morx', 'fleem')]), 'method': 'POST'}]
+    assert test_server.server_fixture.requests_received == [{'path': '/good/handle/1', 'params': MultiDict([('morx', '"fleem"')]), 'method': 'POST'}]
 
 def test_messages():
     test_server.server_fixture.clear()    

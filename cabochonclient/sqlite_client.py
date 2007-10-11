@@ -63,12 +63,15 @@ class CabochonSender:
     def stop(self):
         self.running = False
 
-    @locked
     def send_one(self):
         if not len(self.messages):
             return
-        
-        message = self.messages[0]
+
+        try:
+            self.lock.acquire()
+            message = self.messages[0]
+        finally:
+            self.lock.release()        
         url, message, id = message.url, message.message, message.id
         
         if not url:
@@ -100,7 +103,11 @@ class CabochonSender:
             return #failure
 
         self.messages[0].destroySelf()            
-        self.messages = self.messages[1:]
+        try:
+            self.lock.acquire()
+            self.messages = self.messages[1:]
+        finally:
+            self.lock.release()
         return True
 
     @locked
