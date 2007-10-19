@@ -88,7 +88,6 @@ class CabochonSender:
             password = extra['password']
             headers['Authorization'] = 'WSSE profile="UsernameToken"'
             headers['X-WSSE'] = wsse_header(username, password)
-            log.debug("username, password: %s %s" % (username, password))
 
         params = dict((key, dumps(value)) for key, value in params.items())        
         
