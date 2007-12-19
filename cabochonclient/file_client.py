@@ -1,3 +1,4 @@
+from os import makedirs
 
 log = logging.getLogger("CabochonClient")
         
@@ -169,7 +170,7 @@ class CabochonClient:
         self.queues = {}
         
         if not os.path.isdir(self.message_dir):
-            mkdir(self.message_dir)
+            makedirs(self.message_dir)
 
         #locate the most recent message and log files for the writer
         most_recent = find_most_recent(self.message_dir, "messages.")

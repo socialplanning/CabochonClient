@@ -19,7 +19,7 @@
 
 from threading import RLock
 import os.path
-from os import mkdir, listdir, remove as removefile, fstat, fsync
+from os import makedirs, listdir, remove as removefile, fstat, fsync
 import struct
 from restclient import rest_invoke
 
@@ -133,7 +133,7 @@ class CabochonClient:
         self.queues = {}
         
         if not os.path.isdir(self.message_dir):
-            mkdir(self.message_dir)
+            makedirs(self.message_dir)
 
         self.lock = RLock()
         self._sender = None

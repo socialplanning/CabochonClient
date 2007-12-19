@@ -19,7 +19,7 @@
 
 from threading import RLock
 import os.path
-from os import mkdir, listdir, remove as removefile, fstat, fsync
+from os import listdir, remove as removefile, fstat, fsync
 import struct
 from restclient import rest_invoke
 
