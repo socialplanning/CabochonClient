@@ -77,7 +77,7 @@ class CabochonSender:
         if not url:
             return url #failure
 
-        logging.warning("sending a message")
+        logging.info("sending a message")
 
         params = loads(message)
         headers = {}
