@@ -77,7 +77,7 @@ class CabochonSender:
         if not url:
             return url #failure
 
-        log.debug("sending a message")
+        logging.warning("sending a message")
 
         params = loads(message)
         headers = {}
@@ -96,6 +96,7 @@ class CabochonSender:
         try:
             result = loads(result)
         except ValueError:
+            log.warning("Unparsable result from Cabochon: %s" % result)
             return False
         
         if result.get('status', None) != 'accepted':
