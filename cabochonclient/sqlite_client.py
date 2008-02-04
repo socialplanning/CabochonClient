@@ -36,7 +36,7 @@ import logging
 
 from sqlobject import *
 
-log = logging.getLogger("CabochonClient")
+log = logging.getLogger("CabochonClient.sqlite_client")
 
 @decorator
 def locked(proc, *args, **kwargs):
@@ -77,7 +77,7 @@ class CabochonSender:
         if not url:
             return url #failure
 
-        logging.info("sending a message")
+        log.info("sending a message")
 
         params = loads(message)
         headers = {}
