@@ -27,7 +27,14 @@ setup(
     author_email="novalis@openplans.org",
     url="http://www.openplans.org/projects/cabochon",
     license="GPLv2 or any later version",
-    install_requires=["simplejson", "restclient", "decorator", "sqlobject", "pysqlite"],
+    install_requires=[
+    "simplejson",
+    "restclient",
+    "decorator",
+    "sqlobject",
+    "pysqlite",
+    'WSSEAuth>=0.2dev-r19612',
+],
     packages=find_packages(),
     include_package_data=True,
 )
