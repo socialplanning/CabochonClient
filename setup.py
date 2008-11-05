@@ -33,7 +33,7 @@ setup(
     "decorator",
     "sqlobject",
     "pysqlite",
-    'WSSEAuth>=0.2dev-r19612',
+    'WSSEAuth>=0.1.1',
 ],
     packages=find_packages(),
     include_package_data=True,
