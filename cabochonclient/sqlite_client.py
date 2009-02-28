@@ -158,7 +158,7 @@ class CabochonClient:
         return self._sender
             
     @locked
-    def send_message(self, params, url = None, path=None):
+    def send_message(self, params, url = None, path=None, ensure_ascii=True):
         if not url:
             url = self.server_url
         if path:
@@ -168,7 +168,7 @@ class CabochonClient:
         if self.username:
             params['__extra'] = dict(username = self.username,
                                      password = self.password)
-        json = dumps(params)
+        json = dumps(params, ensure_ascii=ensure_ascii)
         m = Message(url=url, message=json)
         self._sender.add_message(m)
 
