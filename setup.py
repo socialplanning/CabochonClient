@@ -32,7 +32,7 @@ setup(
     "restclient",
     "decorator",
     "sqlobject",
-    "pysqlite",
+    "pysqlite>=2.5.4",
     'WSSEAuth>=0.1.1',
 ],
     packages=find_packages(),
