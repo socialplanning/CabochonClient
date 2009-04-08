@@ -31,7 +31,7 @@ setup(
     "simplejson",
     "restclient",
     "decorator",
-    "sqlobject",
+    "SQLObject",
     "pysqlite>=2.5.4",
     'WSSEAuth>=0.1.1',
 ],
