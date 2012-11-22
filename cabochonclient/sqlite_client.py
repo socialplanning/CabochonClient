@@ -64,6 +64,8 @@ class CabochonSender:
         self.running = False
 
     def send_one(self):
+        return 
+
         if not len(self.messages):
             return
 
